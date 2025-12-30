@@ -37,5 +37,18 @@ func (h *AuthHandler) Login(ctx context.Context, req *auth.LoginRequest) (*auth.
 }
 
 func (h *AuthHandler) Register(ctx context.Context, req *auth.RegisterRequest) (*auth.RegisterResponse, error) {
-	return nil, nil
+	user, token, err := h.authServicePort.Register(req.Email, req.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	return &auth.RegisterResponse{
+		Token: token,
+		User: &auth.User{
+			UserId:    int32(user.UserID),
+			Name:      "",
+			Email:     user.Email,
+			CreatedAt: timestamppb.New(user.CreatedAt),
+		},
+	}, nil
 }

@@ -5,4 +5,5 @@ import "github.com/DioSaputra28/contact-management-microservice/auth-service/ser
 type UserRepositoryPort interface {
 	FindByEmail(email string) (*domain.User, error)
 	UpdateToken(userID int64, token string) error
+	CreateUser(email, password string) (*domain.User, error)
 }

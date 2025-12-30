@@ -46,6 +46,36 @@ func (s *AuthService) Login(email, password string) (*domain.User, string, error
 	return user, token, nil
 }
 
-func (s *AuthService) Register(name, email, password string) (string, error) {
-	return "", nil
+func (s *AuthService) Register(email, password string) (*domain.User, string, error) {
+	// Check if email already exists
+	user, err := s.userRepo.FindByEmail(email)
+	if err != nil && err != sql.ErrNoRows {
+		// Return error only if it's NOT "no rows" error
+		return nil, "", err
+	}
+
+	if user != nil {
+		// Email already exists
+		return nil, "", errors.New("email already exists")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, "", err
+	}
+
+	user, err = s.userRepo.CreateUser(email, string(hashedPassword))
+	if err != nil {
+		return nil, "", err
+	}
+
+	token := uuid.New().String()
+	err = s.userRepo.UpdateToken(user.UserID, token)
+	if err != nil {
+		return nil, "", err
+	}
+
+	user.Token = token
+
+	return user, token, nil
 }

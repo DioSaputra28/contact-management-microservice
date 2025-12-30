@@ -23,7 +23,7 @@ func main() {
 	}
 	defer db.Close()
 
-	log.Println("✓ Database connected successfully")
+	log.Println("Database connected successfully")
 
 	userRepo := repository.NewUserRepository(db)
 

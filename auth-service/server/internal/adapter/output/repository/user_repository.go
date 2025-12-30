@@ -41,3 +41,23 @@ func (r *UserRepository) UpdateToken(userID int64, token string) error {
 	_, err := r.db.Exec(query, token, userID)
 	return err
 }
+
+
+func (r *UserRepository) CreateUser(email, password string) (*domain.User, error) {
+	user := &domain.User{}
+
+	query := "INSERT INTO users (email, password) VALUES (?, ?)"
+	result, err := r.db.Exec(query, email, password)
+	if err != nil {
+		return nil, err
+	}
+
+	user.UserID, err = result.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	user.Email = email
+
+	return user, nil
+}

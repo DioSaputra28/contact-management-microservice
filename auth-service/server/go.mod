@@ -3,7 +3,7 @@ module github.com/DioSaputra28/contact-management-microservice/auth-service/serv
 go 1.25.5
 
 require (
-	github.com/DioSaputra28/contact-management-proto v0.0.3
+	github.com/DioSaputra28/contact-management-proto v0.0.4
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
