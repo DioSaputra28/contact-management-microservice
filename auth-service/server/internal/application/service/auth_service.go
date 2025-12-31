@@ -8,6 +8,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/DioSaputra28/contact-management-microservice/auth-service/server/internal/application/domain"
+	"github.com/DioSaputra28/contact-management-microservice/auth-service/server/internal/application/dto"
+	"github.com/DioSaputra28/contact-management-microservice/auth-service/server/internal/application/validator"
 	"github.com/DioSaputra28/contact-management-microservice/auth-service/server/internal/port/output"
 )
 
@@ -22,6 +24,15 @@ func NewAuthService(userRepo output.UserRepositoryPort) *AuthService {
 }
 
 func (s *AuthService) Login(email, password string) (*domain.User, string, error) {
+	loginReq := &dto.LoginRequest{
+		Email:    email,
+		Password: password,
+	}
+
+	if err := validator.ValidateStruct(loginReq); err != nil {
+		return nil, "", err
+	}
+
 	user, err := s.userRepo.FindByEmail(email)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -46,16 +57,23 @@ func (s *AuthService) Login(email, password string) (*domain.User, string, error
 	return user, token, nil
 }
 
-func (s *AuthService) Register(email, password string) (*domain.User, string, error) {
-	// Check if email already exists
+func (s *AuthService) Register(name, email, password string) (*domain.User, string, error) {
+	registerReq := &dto.RegisterRequest{
+		Name:     name,
+		Email:    email,
+		Password: password,
+	}
+
+	if err := validator.ValidateStruct(registerReq); err != nil {
+		return nil, "", err
+	}
+
 	user, err := s.userRepo.FindByEmail(email)
 	if err != nil && err != sql.ErrNoRows {
-		// Return error only if it's NOT "no rows" error
 		return nil, "", err
 	}
 
 	if user != nil {
-		// Email already exists
 		return nil, "", errors.New("email already exists")
 	}
 
@@ -64,7 +82,7 @@ func (s *AuthService) Register(email, password string) (*domain.User, string, er
 		return nil, "", err
 	}
 
-	user, err = s.userRepo.CreateUser(email, string(hashedPassword))
+	user, err = s.userRepo.CreateUser(name, email, string(hashedPassword))
 	if err != nil {
 		return nil, "", err
 	}

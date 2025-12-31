@@ -4,5 +4,5 @@ import "github.com/DioSaputra28/contact-management-microservice/auth-service/ser
 
 type AuthServicePort interface {
 	Login(email, password string) (*domain.User, string, error)
-	Register(email, password string) (*domain.User, string, error)
+	Register(name, email, password string) (*domain.User, string, error)
 }

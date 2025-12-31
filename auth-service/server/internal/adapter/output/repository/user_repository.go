@@ -19,9 +19,10 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 func (r *UserRepository) FindByEmail(email string) (*domain.User, error) {
 	user := &domain.User{}
 
-	query := "SELECT user_id, email, password, token, created_at, updated_at FROM users WHERE email = ?"
+	query := "SELECT user_id, name, email, password, token, created_at, updated_at FROM users WHERE email = ?"
 	err := r.db.QueryRow(query, email).Scan(
 		&user.UserID,
+		&user.Name,
 		&user.Email,
 		&user.Password,
 		&user.Token,
@@ -42,12 +43,11 @@ func (r *UserRepository) UpdateToken(userID int64, token string) error {
 	return err
 }
 
-
-func (r *UserRepository) CreateUser(email, password string) (*domain.User, error) {
+func (r *UserRepository) CreateUser(name, email, password string) (*domain.User, error) {
 	user := &domain.User{}
 
-	query := "INSERT INTO users (email, password) VALUES (?, ?)"
-	result, err := r.db.Exec(query, email, password)
+	query := "INSERT INTO users (name, email, password) VALUES (?, ?, ?)"
+	result, err := r.db.Exec(query, name, email, password)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +58,7 @@ func (r *UserRepository) CreateUser(email, password string) (*domain.User, error
 	}
 
 	user.Email = email
+	user.Name = name
 
 	return user, nil
 }
