@@ -74,6 +74,11 @@ func (us *UserService) GetUserById(id int64) (*domain.User, error) {
 	return user, nil
 }
 
-func (us *UserService) GetUsers() ([]*domain.User, error) {
-	return us.userRepo.GetUsers()
+func (us *UserService) GetUsers(page, limit int, search string) ([]*domain.User, *domain.UserPagination, error) {
+	users, pagination, err := us.userRepo.GetUsers(page, limit, search)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return users, pagination, nil
 }

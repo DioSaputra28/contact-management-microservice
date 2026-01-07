@@ -7,5 +7,5 @@ type UserRepositoryPort interface {
 	UpdateUser(id string, name, email, password string) (*domain.User, error)
 	DeleteUser(id string) (*domain.User, error)
 	GetUserById(id int64) (*domain.User, error)
-	GetUsers() ([]*domain.User, error)
+	GetUsers(page, limit int, search string) ([]*domain.User, *domain.UserPagination, error)
 }

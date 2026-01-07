@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/DioSaputra28/contact-management-microservice/user-service/server/internal/application/domain"
 )
@@ -26,11 +27,13 @@ func (ur *UserRepository) CreateUser(name, email, password string) (*domain.User
 		return nil, err
 	}
 
+	now := time.Now()
 	user := &domain.User{
-		UserID:   userID,
-		Name:     name,
-		Email:    email,
-		Password: password,
+		UserID:    userID,
+		Name:      name,
+		Email:     email,
+		Password:  password,
+		CreatedAt: &now,
 	}
 
 	return user, nil
@@ -43,10 +46,12 @@ func (ur *UserRepository) UpdateUser(id string, name, email, password string) (*
 		return nil, err
 	}
 
+	now := time.Now()
 	user := &domain.User{
-		Name:     name,
-		Email:    email,
-		Password: password,
+		Name:      name,
+		Email:     email,
+		Password:  password,
+		CreatedAt: &now,
 	}
 
 	return user, nil
@@ -80,23 +85,92 @@ func (ur *UserRepository) GetUserById(id int64) (*domain.User, error) {
 	return user, nil
 }
 
-func (ur *UserRepository) GetUsers() ([]*domain.User, error) {
-	query := "SELECT user_id, name, email, password, created_at FROM users"
-	rows, err := ur.db.Query(query)
+func (ur *UserRepository) GetUsers(page, limit int, search string) ([]*domain.User, *domain.UserPagination, error) {
+	var users []*domain.User
+	var totalData int64
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10 
+	}
+	if limit > 100 {
+		limit = 100 
+	}
+
+	query := `
+		SELECT 
+			user_id, 
+			name, 
+			email, 
+			password, 
+			created_at,
+			COUNT(*) OVER() as total_count
+		FROM users
+	`
+
+	var args []any
+
+	if search != "" {
+		query += " WHERE name LIKE ? OR email LIKE ?"
+		searchPattern := "%" + search + "%"
+		args = append(args, searchPattern, searchPattern)
+	}
+
+	query += " LIMIT ? OFFSET ?"
+	args = append(args, limit, (page-1)*limit)
+
+	rows, err := ur.db.Query(query, args...)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer rows.Close()
 
-	var users []*domain.User
 	for rows.Next() {
 		user := &domain.User{}
-		err := rows.Scan(&user.UserID, &user.Name, &user.Email, &user.Password, &user.CreatedAt)
+		err := rows.Scan(
+			&user.UserID,
+			&user.Name,
+			&user.Email,
+			&user.Password,
+			&user.CreatedAt,
+			&totalData,
+		)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		users = append(users, user)
 	}
 
-	return users, nil
+	if len(users) == 0 && totalData == 0 {
+		countQuery := "SELECT COUNT(*) FROM users"
+		var countArgs []any
+
+		if search != "" {
+			countQuery += " WHERE name LIKE ? OR email LIKE ?"
+			searchPattern := "%" + search + "%"
+			countArgs = append(countArgs, searchPattern, searchPattern)
+		}
+
+		err := ur.db.QueryRow(countQuery, countArgs...).Scan(&totalData)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	totalPage := int64(0)
+	if totalData > 0 {
+		totalPage = totalData / int64(limit)
+		if totalData%int64(limit) > 0 {
+			totalPage++
+		}
+	}
+
+	return users, &domain.UserPagination{
+		TotalData:   totalData,
+		CurrentPage: int64(page),
+		PageSize:    int64(limit),
+		TotalPage:   totalPage,
+	}, nil
 }

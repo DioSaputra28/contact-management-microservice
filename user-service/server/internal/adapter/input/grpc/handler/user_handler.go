@@ -18,7 +18,7 @@ func NewUserHandler(userS input.UserServicePort) *UserHandler {
 }
 
 func (uh *UserHandler) GetUserById(ctx context.Context, req *user.GetUserByIdRequest) (*user.GetUserByIdResponse, error) {
-	foundUser, err := uh.UserService.GetUserById(int64(req.UserId))
+	foundUser, err := uh.UserService.GetUserById(int64(req.GetUserId()))
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (uh *UserHandler) GetUserById(ctx context.Context, req *user.GetUserByIdReq
 }
 
 func (uh *UserHandler) GetUsers(ctx context.Context, req *user.GetUsersRequest) (*user.GetUsersResponse, error) {
-	users, err := uh.UserService.GetUsers()
+	users, pagination, err := uh.UserService.GetUsers(int(req.GetPage()), int(req.GetLimit()), req.GetSearch())
 	if err != nil {
 		return nil, err
 	}
@@ -51,11 +51,15 @@ func (uh *UserHandler) GetUsers(ctx context.Context, req *user.GetUsersRequest) 
 
 	return &user.GetUsersResponse{
 		Users: userResponses,
+		TotalData: int32(pagination.TotalData),
+		CurrentPage: int32(pagination.CurrentPage),
+		PageSize: int32(pagination.PageSize),
+		TotalPage: int32(pagination.TotalPage),
 	}, nil
 }
 
 func (uh *UserHandler) CreateUser(ctx context.Context, req *user.CreateUserRequest) (*user.CreateUserResponse, error) {
-	createdUser, err := uh.UserService.CreateUser(req.Name, req.Email, req.Password)
+	createdUser, err := uh.UserService.CreateUser(req.GetName(), req.GetEmail(), req.GetPassword())
 	if err != nil {
 		return nil, err
 	}
@@ -71,16 +75,16 @@ func (uh *UserHandler) CreateUser(ctx context.Context, req *user.CreateUserReque
 }
 
 func (uh *UserHandler) UpdateUser(ctx context.Context, req *user.UpdateUserRequest) (*user.UpdateUserResponse, error) {
-	userID := string(req.UserId)
+	userID := string(req.GetUserId())
 
-	updatedUser, err := uh.UserService.UpdateUser(userID, *req.Name, *req.Email, *req.Password)
+	updatedUser, err := uh.UserService.UpdateUser(userID, req.GetName(), req.GetEmail(), req.GetPassword())
 	if err != nil {
 		return nil, err
 	}
 
 	return &user.UpdateUserResponse{
 		User: &user.User{
-			UserId: req.UserId,
+			UserId: req.GetUserId(),
 			Name:   updatedUser.Name,
 			Email:  updatedUser.Email,
 		},
@@ -88,7 +92,7 @@ func (uh *UserHandler) UpdateUser(ctx context.Context, req *user.UpdateUserReque
 }
 
 func (uh *UserHandler) DeleteUser(ctx context.Context, req *user.DeleteUserRequest) (*user.DeleteUserResponse, error) {
-	userID := string(req.UserId)
+	userID := string(req.GetUserId())
 
 	deletedUser, err := uh.UserService.DeleteUser(userID)
 	if err != nil {
