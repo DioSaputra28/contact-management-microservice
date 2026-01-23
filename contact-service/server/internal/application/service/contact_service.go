@@ -3,6 +3,7 @@ package service
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/DioSaputra28/contact-management-microservice/contact-service/server/internal/application/domain"
 	"github.com/DioSaputra28/contact-management-microservice/contact-service/server/internal/application/dto"
@@ -67,6 +68,8 @@ func (cs *ContactService) GetContactById(userId string, contactId int64) (*domai
 
 func (cs *ContactService) GetContacts(userId string, page, limit int, search string) ([]*domain.Contact, *domain.ContactPagination, error) {
 	contacts, pagination, err := cs.contactRepo.GetContacts(userId, page, limit, search)
+	fmt.Println(contacts)
+	fmt.Println(err, "Di service")
 	if err != nil {
 		return nil, nil, err
 	}

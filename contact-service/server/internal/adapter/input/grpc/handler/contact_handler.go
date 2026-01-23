@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/DioSaputra28/contact-management-microservice/contact-service/server/internal/port/input"
@@ -68,6 +69,8 @@ func (h *ContactHandler) GetContacts(ctx context.Context, req *contact.GetContac
 	if err != nil {
 		return nil, ErrInternalServer
 	}
+
+	fmt.Println("Sampai line 73")
 
 	var contactResponses []*contact.Contact
 	for _, c := range contacts {

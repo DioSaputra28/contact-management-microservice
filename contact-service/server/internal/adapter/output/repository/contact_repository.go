@@ -148,7 +148,7 @@ func (cr *ContactRepository) GetContacts(userId string, page, limit int, search 
 		WHERE user_id = ?
 	`
 
-	var args []interface{}
+	var args []any
 	args = append(args, userId)
 
 	if search != "" {
@@ -160,7 +160,9 @@ func (cr *ContactRepository) GetContacts(userId string, page, limit int, search 
 	query += " LIMIT ? OFFSET ?"
 	args = append(args, limit, (page-1)*limit)
 
+	fmt.Println("Sampai 163")
 	rows, err := cr.db.Query(query, args...)
+	fmt.Println(err)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -186,7 +188,7 @@ func (cr *ContactRepository) GetContacts(userId string, page, limit int, search 
 
 	if len(contacts) == 0 && totalData == 0 {
 		countQuery := "SELECT COUNT(*) FROM contacts WHERE user_id = ?"
-		var countArgs []interface{}
+		var countArgs []any
 		countArgs = append(countArgs, userId)
 
 		if search != "" {

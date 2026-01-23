@@ -74,22 +74,10 @@ func (h *ContactHandler) GetAddresses(ctx context.Context, req *contact.GetAddre
 
 func (h *ContactHandler) CreateAddress(ctx context.Context, req *contact.CreateAddressRequest) (*contact.CreateAddressResponse, error) {
 	contactId := int64(req.GetContactId())
-	street := ""
-	if req.Street != nil {
-		street = *req.Street
-	}
-	city := ""
-	if req.City != nil {
-		city = *req.City
-	}
-	state := ""
-	if req.State != nil {
-		state = *req.State
-	}
-	zipCode := ""
-	if req.ZipCode != nil {
-		zipCode = *req.ZipCode
-	}
+	street := req.GetStreet()
+	city := req.GetCity()
+	state := req.GetState()
+	zipCode := req.GetZipCode()
 	country := req.GetCountry()
 
 	createdAddress, err := h.addressService.CreateAddress(contactId, street, city, state, zipCode, country)
